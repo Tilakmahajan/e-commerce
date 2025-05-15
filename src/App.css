@@ -27,3 +27,9 @@ font-family: 'Inder', sans-serif;
     }
 
 }}
+
+.img-logo{
+    width: 100%;
+    height: auto;
+    padding: 15 0px;
+}
