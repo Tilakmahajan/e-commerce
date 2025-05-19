@@ -3,10 +3,12 @@ import css from './navbar.css'
 import { Link } from 'react-router-dom'
 import { FaRegUser } from "react-icons/fa";
 import { HiShoppingBag } from "react-icons/hi2";
+import Searchbox from './searchbox'
+import Dropdown from './dropdown';
 const navbar = () => {
   return (
     <div>
- <nav class="navbar navbar-expand-lg bg-body-tertiary mx-auto ">
+ <nav class="navbar navbar-expand-lg bg-body-tertiary mt-2 container">
   <div class="container-fluid d-flex justify-content-between align-items-center">
     <div className='d-flex justify-content-between align-items-center '>
     <Link to="/" class="navbar-brand">
@@ -17,30 +19,10 @@ const navbar = () => {
       <span class="navbar-toggler-icon"></span>
     </button>
     
-  
-
-
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav mx-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle fs-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Country
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
+<Dropdown/>
     </div>
 
-    <form class="d-flex search" role="search">
-      <input class="form-control me-2" type="search" placeholder="Search For Products" aria-label="Search" />
-      <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
+    <Searchbox />
     <div className='user-icon d-flex justify-content-center align-items-center ml-auto p-2'>
      <button className='user-circle'><FaRegUser /></button>
      <div className='carttab ml-auto d-flex justify-content-center align-items-center'>
