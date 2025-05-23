@@ -3,7 +3,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FaChevronDown } from "react-icons/fa";
 import { Link } from 'react-router-dom'
 import { HiOutlineHome } from "react-icons/hi";
-import { GiClothes } from "react-icons/gi";
+import { IoShirtOutline } from "react-icons/io5";
 import { AiOutlineLaptop } from "react-icons/ai";
 import { RiBrushAiLine } from "react-icons/ri";
 import { RiBearSmileLine } from "react-icons/ri";
@@ -21,10 +21,12 @@ const navigation  = () => {
               <span className='icon2 ml-2'><FaChevronDown /></span>
             </button>
           </div>
-          <div className='col-sm-9 navPart2 d-flex  align-items-center'>
+          
+<div className='col-sm-9 navPart2 d-flex align-items-center justify-content-end'>
+
           <ul className='list list-inline ml-auto'>
             <li className='list-inline-item'><Link to="/"><HiOutlineHome/> &nbsp; HOME</Link></li>
-            <li className='list-inline-item'><Link to="/"><GiClothes/> &nbsp; FASHION</Link></li>
+            <li className='list-inline-item'><Link to="/"><IoShirtOutline/> &nbsp; FASHION</Link></li>
             <li className='list-inline-item'><Link to="/"><AiOutlineLaptop/> &nbsp; ELECTRONICS</Link></li>
             <li className='list-inline-item'><Link to="/"><RiBrushAiLine/> &nbsp; BEAUTY</Link></li>
             <li className='list-inline-item'><Link to="/"><RiBearSmileLine/> &nbsp; TOYS</Link></li>
