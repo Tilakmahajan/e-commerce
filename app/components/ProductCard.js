@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function ProductCard({ product }) {
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition">
+    <div className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition text-black">
       <img
         src={product.image}
         alt={product.name}

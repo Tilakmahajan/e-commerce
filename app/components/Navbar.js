@@ -7,10 +7,10 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto flex items-center justify-between px-6 py-4">
+      <div className="container mx-auto flex items-center justify-between px-6 py-4 text-black">
         {/* Logo */}
         <Link href="/" className="text-2xl font-bold text-blue-600">
-          MyShop
+         MAX WHOLESALER
         </Link>
 
         {/* Desktop Menu */}

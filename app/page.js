@@ -1,31 +1,92 @@
+"use client";
 import products from "@/app/data/products";
 import ProductCard from "@/app/components/ProductCard";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-20 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold">Welcome to MyShop</h1>
-        <p className="mt-4 text-lg md:text-xl">
-          Discover the best deals on electronics, gadgets, and more!
-        </p>
-        <a
-          href="/products"
-          className="mt-6 inline-block bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow hover:bg-gray-100"
-        >
-          Shop Now
-        </a>
+      <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white py-24 overflow-hidden">
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <motion.h1
+            className="text-4xl md:text-6xl font-extrabold mb-6 drop-shadow-lg"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            Welcome to <span className="text-yellow-300"> Max Wholesaler</span>
+          </motion.h1>
+          <motion.p
+            className="text-lg md:text-xl mb-8 opacity-95 drop-shadow-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            Discover the best deals on electronics, gadgets, and more!
+          </motion.p>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1, duration: 0.6 }}
+          >
+            <Link
+              href="/products"
+              className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-gray-200 transition text-lg"
+            >
+              Shop Now
+            </Link>
+          </motion.div>
+        </div>
+        {/* Decorative blurred circles */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-pink-400 opacity-30 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-3xl -z-10"></div>
       </section>
 
       {/* Featured Products */}
-      <section className="container mx-auto px-6 py-12">
-        <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <section className="container mx-auto px-6 py-16">
+        <h2 className="text-2xl font-bold mb-8 text-center text-gray-900">
+          Featured Products
+        </h2>
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={{
+            hidden: {},
+            show: {
+              transition: { staggerChildren: 0.15 },
+            },
+          }}
+        >
           {products.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <motion.div
+              key={product.id}
+              variants={{
+                hidden: { opacity: 0, y: 40 },
+                show: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.6 }}
+            >
+              <ProductCard product={product} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+        <motion.div
+          className="text-center mt-10"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Link
+            href="/products"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition text-lg"
+          >
+            View All Products →
+          </Link>
+        </motion.div>
       </section>
     </div>
   );
