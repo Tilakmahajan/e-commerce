@@ -1,56 +1,65 @@
 "use client";
 import { useCart } from "@/app/components/CartContext";
-import Link from "next/link";
+import { useState } from "react";
 
 export default function CheckoutPage() {
-  const { cart, totalPrice } = useCart();
+  const { cart } = useCart();
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
-  if (cart.length === 0) {
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handlePlaceOrder = () => {
+    setOrderPlaced(true);
+  };
+
+  if (cart.length === 0 && !orderPlaced) {
     return (
-      <div className="container mx-auto px-6 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">No items to checkout</h1>
-        <Link href="/products" className="text-blue-600 underline">
-          Shop Now
-        </Link>
+      <div className="container mx-auto px-6 py-12 text-center text-black">
+        <p className="text-gray-500 text-lg">Your cart is empty.</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="container mx-auto px-6 py-12 text-black">
+      {!orderPlaced ? (
+        <>
+          <h1 className="text-3xl font-bold mb-8 text-gray-900">Checkout</h1>
 
-      {/* Order Summary */}
-      <div className="bg-white shadow rounded-lg p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Order Summary</h2>
-        <div className="divide-y">
-          {cart.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between py-2"
-            >
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-500">
-                  Qty: {item.quantity} × ₹{item.price}
-                </p>
+          <div className="grid gap-6 mb-8">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="flex justify-between bg-white rounded-xl shadow-md p-4"
+              >
+                <div>
+                  <h2 className="font-semibold text-gray-800">{item.name}</h2>
+                  <p className="text-gray-600">Quantity: {item.quantity}</p>
+                </div>
+                <p className="font-semibold text-gray-900">₹{item.price * item.quantity}</p>
               </div>
-              <p className="font-semibold">₹{item.price * item.quantity}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div className="text-right pt-4">
-          <h3 className="text-xl font-bold">Total: ₹{totalPrice}</h3>
-        </div>
-      </div>
+          <div className="bg-gray-100 p-6 rounded-xl shadow-md text-right mb-6">
+            <h2 className="text-xl font-semibold">Total: ₹{total.toFixed(2)}</h2>
+          </div>
 
-      {/* Mock Payment / Confirm Button */}
-      <div className="mt-8 text-center">
-        <button className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition">
-          Place Order
-        </button>
-      </div>
+          <button
+            onClick={handlePlaceOrder}
+            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition"
+          >
+            Place Order
+          </button>
+        </>
+      ) : (
+        <div className="text-center py-20">
+          <h1 className="text-4xl font-bold text-green-600 mb-4">Order Placed!</h1>
+          <p className="text-gray-700 text-lg">
+            Thank you for your purchase. Your order has been successfully placed.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

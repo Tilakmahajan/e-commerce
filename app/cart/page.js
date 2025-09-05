@@ -1,6 +1,7 @@
 "use client";
 import { useCart } from "@/app/components/CartContext";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
@@ -68,9 +69,12 @@ export default function CartPage() {
             <h2 className="text-xl font-semibold mb-4">
               Total: ₹{total.toFixed(2)}
             </h2>
+          <Link href={"/checkout"}>
             <button className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition">
               Checkout
             </button>
+</Link>
+
           </div>
         </div>
       )}
