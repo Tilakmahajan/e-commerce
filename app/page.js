@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import ProductCard from "@/app/components/ProductCard";
-import Link from "next/link";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/app/firebaseConfig";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -10,9 +11,13 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        setProducts(data);
+        const productsCol = collection(db, "products");
+        const productsSnapshot = await getDocs(productsCol);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProducts(productsList);
       } catch (err) {
         console.error("Failed to fetch products:", err);
       }
@@ -20,10 +25,8 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  const featuredProducts = products; // Show all products
-
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white py-24 overflow-hidden">
         <div className="container mx-auto px-6 text-center relative z-10">
@@ -56,6 +59,8 @@ export default function Home() {
             </Link>
           </motion.div>
         </div>
+
+        {/* Blurred Circles */}
         <div className="absolute top-0 left-0 w-72 h-72 bg-pink-400 opacity-30 rounded-full blur-3xl -z-10"></div>
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-3xl -z-10"></div>
       </section>
@@ -66,27 +71,47 @@ export default function Home() {
           Featured Products
         </h2>
 
-        {featuredProducts.length === 0 ? (
-          <p className="text-center text-gray-500">No products available.</p>
-        ) : (
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.15 } } }}
-          >
-            {featuredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                variants={{ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0 } }}
-                transition={{ duration: 0.6 }}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={{
+            hidden: {},
+            show: { transition: { staggerChildren: 0.15 } },
+          }}
+        >
+          {products.slice(0, 4).map((product) => (
+            <motion.div
+              key={product.id}
+              className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center text-center hover:shadow-lg transition"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="h-40 w-full object-cover rounded-lg mb-4"
+              />
+              <h3 className="text-lg font-semibold text-gray-900">
+                {product.name}
+              </h3>
+              <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                {product.description}
+              </p>
+              <p className="font-bold text-blue-600 mb-4">
+                ₹{product.price}
+              </p>
+              <Link
+                href={`/products/${product.id}`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
               >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+                View Details
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
 
         {/* View All Products Button */}
         <motion.div
@@ -97,7 +122,7 @@ export default function Home() {
         >
           <Link
             href="/products"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-700 transition text-lg font-semibold"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition text-lg"
           >
             View All Products →
           </Link>

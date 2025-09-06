@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/app/firebaseConfig";
 import ProductCard from "@/app/components/ProductCard";
-import { motion } from "framer-motion";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -9,9 +10,10 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        setProducts(data);
+        const productsCol = collection(db, "products");
+        const productsSnapshot = await getDocs(productsCol);
+        const productsList = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setProducts(productsList);
       } catch (err) {
         console.error("Failed to fetch products:", err);
       }
@@ -20,30 +22,13 @@ export default function ProductsPage() {
   }, []);
 
   return (
-    <div className="container mx-auto px-6 py-16">
-      <h1 className="text-3xl font-bold mb-10 text-center">All Products</h1>
-
-      {products.length === 0 ? (
-        <p className="text-center text-gray-500">No products available.</p>
-      ) : (
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.15 } } }}
-        >
-          {products.map((product) => (
-            <motion.div
-              key={product.id}
-              variants={{ hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0 } }}
-              transition={{ duration: 0.6 }}
-            >
-              <ProductCard product={product} />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+    <div className="min-h-screen bg-gray-100 container mx-auto px-6 py-12">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 text-center">All Products</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
 }

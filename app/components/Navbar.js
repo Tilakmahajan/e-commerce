@@ -1,60 +1,68 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ShoppingCart } from "lucide-react";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const adminStatus = localStorage.getItem("isAdmin");
+    setIsAdmin(adminStatus === "true");
+    setIsLoggedIn(adminStatus !== null);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("isAdmin");
+    setIsAdmin(false);
+    setIsLoggedIn(false);
+    window.location.href = "/login"; // redirect to login page
+  };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto flex items-center justify-between px-6 py-4 text-black">
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-blue-600">
-         MAX WHOLESALER
+    <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+      {/* Logo */}
+      <Link href="/" className="text-2xl font-bold text-blue-600">
+        Max Wholesaler
+      </Link>
+
+      {/* Navigation Links */}
+      <div className="flex items-center gap-6">
+        <Link href="/" className="hover:text-blue-600 transition">
+          Home
+        </Link>
+        <Link href="/products" className="hover:text-blue-600 transition">
+          Products
+        </Link>
+        <Link href="/cart" className="flex items-center gap-1 hover:text-blue-600 transition">
+          <ShoppingCart size={20} /> Cart
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6">
-          <Link href="/" className="hover:text-blue-600">
-            Home
+        {/* Admin link only for admins */}
+        {isAdmin && (
+          <Link href="/admin" className="hover:text-blue-600 font-semibold transition">
+            Admin
           </Link>
-          <Link href="/products" className="hover:text-blue-600">
-            Products
-          </Link>
-          <Link href="/cart" className="hover:text-blue-600">
-            Cart
-          </Link>
-          <Link href="/login" className="hover:text-blue-600">
+        )}
+
+        {/* Login/Logout */}
+        {isLoggedIn ? (
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-1 rounded-lg hover:bg-red-600 transition"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="bg-blue-600 text-white px-4 py-1 rounded-lg hover:bg-blue-700 transition"
+          >
             Login
           </Link>
-        </div>
-
-        {/* Mobile Hamburger */}
-        <button
-          className="md:hidden text-gray-700"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          ☰
-        </button>
+        )}
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-gray-100 px-6 py-4 space-y-4">
-          <Link href="/" className="block hover:text-blue-600">
-            Home
-          </Link>
-          <Link href="/products" className="block hover:text-blue-600">
-            Products
-          </Link>
-          <Link href="/cart" className="block hover:text-blue-600">
-            Cart
-          </Link>
-          <Link href="/login" className="block hover:text-blue-600">
-            Login
-          </Link>
-        </div>
-      )}
     </nav>
   );
 }

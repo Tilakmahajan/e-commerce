@@ -12,9 +12,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <head>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
         <CartProvider>
           <Navbar />
+          <CartProvider>
           <main className="min-h-screen bg-gray-50">{children}</main>
+          </CartProvider>
           <Footer />
         </CartProvider>
       </body>
