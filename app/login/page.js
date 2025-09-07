@@ -4,6 +4,7 @@ import { auth, db } from "@/app/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // 1️⃣ Sign in with Firebase Auth
+      // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -26,7 +27,7 @@ export default function LoginPage() {
       );
       const userId = userCredential.user.uid;
 
-      // 2️⃣ Get user role from Firestore
+      // Get user role from Firestore
       const userDoc = await getDoc(doc(db, "users", userId));
 
       if (!userDoc.exists()) {
@@ -53,19 +54,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen text-black bg-gray-100">
-      <form
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-500 via-purple-600 to-pink-500 text-black">
+      <motion.form
         onSubmit={handleLogin}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          Login
+        </h2>
 
-        {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+        {error && (
+          <motion.p
+            className="text-red-500 mb-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {error}
+          </motion.p>
+        )}
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full border rounded-lg px-4 py-2 mb-4"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -74,7 +88,7 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full border rounded-lg px-4 py-2 mb-6"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -83,21 +97,25 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          className={`w-full py-3 rounded-lg text-white font-semibold shadow-lg transition ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p className="text-gray-600 text-center mt-4 text-sm">
+        <p className="text-gray-600 text-center mt-5 text-sm">
           Don’t have an account?{" "}
           <span
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/register")}
             className="text-blue-600 font-semibold cursor-pointer hover:underline"
           >
             Sign up
           </span>
         </p>
-      </form>
+      </motion.form>
     </div>
   );
 }

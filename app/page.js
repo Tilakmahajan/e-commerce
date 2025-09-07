@@ -53,16 +53,24 @@ export default function Home() {
           >
             <Link
               href="/products"
-              className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-gray-200 transition text-lg"
+              className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-gray-200 hover:shadow-xl hover:scale-105 transition text-lg"
             >
               Shop Now
             </Link>
           </motion.div>
         </div>
 
-        {/* Blurred Circles */}
-        <div className="absolute top-0 left-0 w-72 h-72 bg-pink-400 opacity-30 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-3xl -z-10"></div>
+        {/* Floating Blurred Circles */}
+        <motion.div
+          className="absolute top-0 left-0 w-72 h-72 bg-pink-400 opacity-30 rounded-full blur-3xl -z-10"
+          animate={{ y: [0, 20, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-0 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-3xl -z-10"
+          animate={{ y: [0, -20, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
       </section>
 
       {/* Featured Products */}
@@ -78,38 +86,40 @@ export default function Home() {
           viewport={{ once: true }}
           variants={{
             hidden: {},
-            show: { transition: { staggerChildren: 0.15 } },
+            show: { transition: { staggerChildren: 0.2 } },
           }}
         >
           {products.slice(0, 4).map((product) => (
-            <motion.div
-              key={product.id}
-              className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center text-center hover:shadow-lg transition"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-40 w-full object-cover rounded-lg mb-4"
-              />
-              <h3 className="text-lg font-semibold text-gray-900">
-                {product.name}
-              </h3>
-              <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                {product.description}
-              </p>
-              <p className="font-bold text-blue-600 mb-4">
-                ₹{product.price}
-              </p>
-              <Link
-                href={`/products/${product.id}`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+            <Link key={product.id} href={`/products/${product.id}`}>
+              <motion.div
+                className="relative bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer group"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0px 20px 40px rgba(0,0,0,0.15)",
+                }}
+                transition={{ duration: 0.4 }}
               >
-                View Details
-              </Link>
-            </motion.div>
+                {/* Product Image */}
+                <motion.img
+                  src={product.image}
+                  alt={product.name}
+                  className="h-40 w-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+                />
+
+                {/* Price Badge */}
+                <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 font-bold px-3 py-1 rounded-full shadow-lg">
+                  ₹{product.price}
+                </span>
+
+                {/* Product Info */}
+                <div className="p-4 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                  <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </motion.div>
 
@@ -122,7 +132,7 @@ export default function Home() {
         >
           <Link
             href="/products"
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition text-lg"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition text-lg"
           >
             View All Products →
           </Link>

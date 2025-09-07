@@ -1,24 +1,15 @@
 "use client";
 import { useCart } from "@/app/components/CartContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-const isLoggedIn = localStorage.getItem("isAdmin") !== null;
 
-
-const handleAddToCart = (product) => {
-  if (!isLoggedIn) {
-    alert("⚠️ You must login to add products to the cart.");
-    window.location.href = "/login";
-    return;
-  }
-  addToCart(product); // existing function
-};
-  if (!cart) return null; // safety check
+  if (!cart) return null;
 
   return (
     <div className="container mx-auto px-6 py-12 text-black">
@@ -51,75 +42,97 @@ const handleAddToCart = (product) => {
         <div className="grid lg:grid-cols-3 gap-10">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
-            {cart.map((item) => (
-              <motion.div
-                key={item.id}
-                className="flex flex-col sm:flex-row items-center justify-between bg-white rounded-2xl shadow-lg p-5 hover:shadow-xl transition"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="flex items-center gap-5">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-xl shadow"
-                  />
-                  <div>
-                    <h2 className="text-lg font-semibold">{item.name}</h2>
-                    <p className="text-gray-600">₹{item.price}</p>
+            <AnimatePresence>
+              {cart.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  className="flex flex-col sm:flex-row items-center justify-between bg-white rounded-2xl shadow-md p-5 hover:shadow-lg transition"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="flex items-center gap-5">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-24 h-24 object-cover rounded-xl shadow"
+                    />
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
+                      <p className="text-gray-600">₹{item.price}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-4 mt-4 sm:mt-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4 mt-4 sm:mt-0">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.id, Math.max(1, item.quantity - 1))
+                        }
+                        className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-1 border rounded-lg">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
-                      onClick={() =>
-                        updateQuantity(item.id, Math.max(1, item.quantity - 1))
-                      }
-                      className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
+                      onClick={() => removeFromCart(item.id)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                     >
-                      -
-                    </button>
-                    <span className="px-4 py-1 border rounded-lg">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
-                    >
-                      +
+                      Remove
                     </button>
                   </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
 
-          {/* Summary Section */}
+          {/* Clean Order Summary Section */}
           <motion.div
-            className="bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-20"
+            className="bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-20 border border-gray-100"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-              Order Summary
-            </h2>
-            <div className="flex justify-between text-lg mb-6">
-              <span>Total:</span>
-              <span className="font-bold text-green-600">
-                ₹{total.toFixed(2)}
-              </span>
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
+
+            <div className="space-y-2 mb-4">
+              {cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between text-gray-700 text-sm hover:bg-gray-50 px-3 py-2 rounded transition"
+                >
+                  <span>
+                    {item.name} × {item.quantity}
+                  </span>
+                  <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
             </div>
+
+            <div className="flex justify-between text-xl font-bold mb-6 text-gray-900">
+              <span>Total:</span>
+              <motion.span
+                key={total}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="text-green-600"
+              >
+                ₹{total.toFixed(2)}
+              </motion.span>
+            </div>
+
             <Link href="/checkout">
-              <button className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-md hover:bg-green-700 transition">
+              <button className="w-full px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-md hover:bg-green-700 transition">
                 Proceed to Checkout →
               </button>
             </Link>

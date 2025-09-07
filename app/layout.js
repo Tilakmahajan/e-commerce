@@ -1,7 +1,9 @@
 import "./globals.css";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import Script from "next/script";
 import { CartProvider } from "@/app/components/CartContext";
+import { AuthProvider } from "./components/AuthContext";
 
 export const metadata = {
   title: "E-Commerce Frontend",
@@ -12,16 +14,20 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <head>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-</head>
+          <AuthProvider>
+    
         <CartProvider>
           <Navbar />
-          <CartProvider>
+         
           <main className="min-h-screen bg-gray-50">{children}</main>
-          </CartProvider>
+          <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
+        
           <Footer />
         </CartProvider>
+</AuthProvider>
       </body>
     </html>
   );

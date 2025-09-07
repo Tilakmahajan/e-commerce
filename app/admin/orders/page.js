@@ -1,24 +1,25 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { db } from "@/app/firebaseConfig";
-import { collection, getDocs, updateDoc, doc, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const fetchOrders = async () => {
     setLoading(true);
-    setError("");
     try {
-      const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setOrders(data);
+      const ordersCol = collection(db, "orders");
+      const ordersSnapshot = await getDocs(ordersCol);
+      const ordersList = ordersSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setOrders(ordersList);
     } catch (err) {
-      console.error(err);
-      setError("Failed to fetch orders.");
+      console.error("Failed to fetch orders:", err);
     } finally {
       setLoading(false);
     }
@@ -28,76 +29,76 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const updateStatus = async (orderId, newStatus) => {
-    try {
-      await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update status.");
-    }
+  const updateStatus = async (orderId, currentStatus) => {
+    const nextStatus =
+      currentStatus === "Pending"
+        ? "Shipped"
+        : currentStatus === "Shipped"
+        ? "Delivered"
+        : "Delivered";
+    const orderDoc = doc(db, "orders", orderId);
+    await updateDoc(orderDoc, { status: nextStatus });
+    fetchOrders();
   };
 
-  if (loading) return <p className="text-center mt-10">Loading orders...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+  if (loading) return <p className="text-center mt-20 text-lg">Loading orders...</p>;
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-center">All Orders</h1>
-      {orders.length === 0 && <p className="text-center">No orders found.</p>}
+    <div className="container mx-auto px-6 py-12 text-black">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 text-center">Admin Orders</h1>
 
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white p-6 rounded-xl shadow-md space-y-2"
-          >
-            <h2 className="text-xl font-semibold">Order ID: {order.id}</h2>
-            <p><strong>Customer:</strong> {order.customerInfo?.name || "N/A"}</p>
-            <p><strong>Email:</strong> {order.customerInfo?.email || "N/A"}</p>
-            <p><strong>Address:</strong> {order.customerInfo?.address || "N/A"}</p>
-            <p><strong>Phone:</strong> {order.customerInfo?.phone || "N/A"}</p>
-            <p><strong>Total:</strong> ₹{order.total || 0}</p>
-            <p><strong>Status:</strong> {order.status || "pending"}</p>
+      {orders.length === 0 ? (
+        <p className="text-center text-gray-600 mt-10">No orders found.</p>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {orders.map((order) => (
+            <motion.div
+              key={order.id}
+              className="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="mb-4">
+                <h2 className="font-semibold text-lg text-gray-800 mb-2">Order ID: {order.id}</h2>
+                <p className="text-gray-700 mb-2">
+                  Customer: {order.userName || order.userEmail || "Unknown"}
+                </p>
+                <p className="text-gray-700 mb-2">Status: <span className="font-bold">{order.status || "Pending"}</span></p>
 
-            <div className="flex gap-2 mt-2">
-              {["pending", "shipped", "delivered"].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => updateStatus(order.id, status)}
-                  className={`px-3 py-1 rounded-lg text-white ${
-                    order.status === status
-                      ? "bg-gray-500 cursor-not-allowed"
-                      : status === "pending"
-                      ? "bg-yellow-500 hover:bg-yellow-600"
-                      : status === "shipped"
-                      ? "bg-blue-500 hover:bg-blue-600"
-                      : "bg-green-500 hover:bg-green-600"
-                  }`}
-                  disabled={order.status === status}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
+                <h3 className="font-semibold text-gray-800 mt-2 mb-1">Items:</h3>
+                <ul className="list-disc list-inside text-gray-700">
+                  {(order.cart || []).map((item) => (
+                    <li key={item.id}>
+                      {item.name} × {item.quantity} → ₹{item.price * item.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            <div className="mt-2">
-              <h3 className="font-semibold">Items:</h3>
-              <ul className="list-disc ml-5">
-                {order.items?.map((item) => (
-                  <li key={item.productId}>
-                    {item.name || "Item"} x {item.quantity || 1} - ₹{(item.price || 0) * (item.quantity || 1)}
-                  </li>
-                )) || <li>No items</li>}
-              </ul>
-            </div>
-          </div>
-        ))}
-      </div>
+              <p className="font-bold text-gray-900 text-lg mb-4">
+                Total: ₹{(order.cart || []).reduce((sum, item) => sum + item.price * item.quantity, 0)}
+              </p>
+
+              <button
+                onClick={() => updateStatus(order.id, order.status || "Pending")}
+                className={`w-full py-2 rounded-lg font-semibold text-white ${
+                  order.status === "Delivered"
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                disabled={order.status === "Delivered"}
+              >
+                {order.status === "Delivered"
+                  ? "Delivered"
+                  : order.status === "Shipped"
+                  ? "Mark as Delivered"
+                  : "Mark as Shipped"}
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
