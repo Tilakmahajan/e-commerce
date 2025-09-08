@@ -8,7 +8,7 @@ import { ShoppingCart, Menu } from "lucide-react";
 
 export default function Navbar() {
   const { cart } = useCart();
-  const { user, logout } = useAuth();
+  const { user, role, logout, loading } = useAuth(); // include loading
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,13 +19,10 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  // ✅ Close dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     }
@@ -37,7 +34,10 @@ export default function Navbar() {
     };
   }, [dropdownOpen]);
 
-  if (!mounted) return null;
+  if (!mounted || loading) return null;
+
+  // Determine order page based on role
+  const ordersLink = role === "admin" ? "/admin/orders" : "/orders";
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
@@ -58,12 +58,26 @@ export default function Navbar() {
           <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">
             Products
           </Link>
-          <Link href="/orders" className="text-gray-700 hover:text-blue-600 transition">
-            Orders
-          </Link>
           <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">
             Contact Us
           </Link>
+
+          {/* Orders & Admin Dashboard (only if logged in & email verified) */}
+          {user?.emailVerified && (
+            <>
+              <Link href={ordersLink} className="text-gray-700 hover:text-blue-600 transition">
+                Orders
+              </Link>
+              {role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="text-red-600 font-semibold hover:text-red-500 transition"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+            </>
+          )}
         </div>
 
         {/* Right Side */}
@@ -79,7 +93,7 @@ export default function Navbar() {
           </Link>
 
           {/* Auth */}
-          {user ? (
+          {user?.emailVerified ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -90,11 +104,19 @@ export default function Navbar() {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-lg border animate-fade-in">
                   <Link
-                    href="/orders"
+                    href={ordersLink}
                     className="block px-4 py-3 hover:bg-gray-100 text-gray-700 text-sm"
                   >
                     My Orders
                   </Link>
+                  {role === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="block px-4 py-3 hover:bg-gray-100 text-red-600 text-sm"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={logout}
                     className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600 text-sm"
@@ -132,12 +154,21 @@ export default function Navbar() {
           <Link href="/products" className="block px-6 py-3 hover:bg-gray-100">
             Products
           </Link>
-          <Link href="/orders" className="block px-6 py-3 hover:bg-gray-100">
-            Orders
-          </Link>
           <Link href="/contact" className="block px-6 py-3 hover:bg-gray-100">
             Contact Us
           </Link>
+          {user?.emailVerified && (
+            <>
+              <Link href={ordersLink} className="block px-6 py-3 hover:bg-gray-100">
+                Orders
+              </Link>
+              {role === "admin" && (
+                <Link href="/admin" className="block px-6 py-3 text-red-600 font-semibold hover:bg-gray-100">
+                  Admin Dashboard
+                </Link>
+              )}
+            </>
+          )}
         </div>
       )}
     </nav>

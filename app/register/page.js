@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { auth, db } from "@/app/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 export default function RegisterPage() {
@@ -27,9 +27,11 @@ export default function RegisterPage() {
     }
 
     try {
+      // 1️⃣ Create user
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCredential.user;
 
+      // 2️⃣ Store user in Firestore
       await setDoc(doc(db, "users", user.uid), {
         name: name.trim(),
         email: user.email,
@@ -37,14 +39,22 @@ export default function RegisterPage() {
         createdAt: new Date(),
       });
 
-      setToast("✅ Registration successful! Redirecting to login...");
-      setTimeout(() => {
-        setToast(null);
-        router.push("/login");
-      }, 2000);
+      // 3️⃣ Send verification email
+      await sendEmailVerification(user);
+
+      // 4️⃣ Show success message
+      setToast("✅ Registration successful! Please check your email to verify your account.");
     } catch (err) {
       console.error(err);
-      setError("⚠️ Registration failed. Please try again.");
+      if (err.code === "auth/email-already-in-use") {
+        setError("⚠️ This email is already registered.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("⚠️ Invalid email address.");
+      } else if (err.code === "auth/weak-password") {
+        setError("⚠️ Password should be at least 6 characters.");
+      } else {
+        setError("⚠️ Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

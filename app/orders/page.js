@@ -5,12 +5,12 @@ import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { useAuth } from "@/app/components/AuthContext";
 
 export default function OrdersPage() {
-  const { user, role, loading } = useAuth(); // get current user and role
+  const { user, role, loading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (loading) return; // wait for auth to initialize
+    if (loading) return;
     if (!user) {
       setError("❌ You must be logged in to view orders.");
       return;
@@ -20,12 +20,9 @@ export default function OrdersPage() {
       try {
         let q;
 
-        // Admin sees all orders
         if (role === "admin") {
           q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-        } 
-        // Customer sees only their orders
-        else {
+        } else {
           q = query(
             collection(db, "orders"),
             where("userId", "==", user.uid),
@@ -34,7 +31,15 @@ export default function OrdersPage() {
         }
 
         const snapshot = await getDocs(q);
-        setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const fetchedOrders = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            items: data.items || [], // ✅ default empty array
+          };
+        });
+        setOrders(fetchedOrders);
       } catch (err) {
         console.error(err);
         setError("❌ Failed to fetch orders.");
@@ -60,7 +65,7 @@ export default function OrdersPage() {
           {orders.map(order => (
             <div key={order.id} className="bg-white p-6 rounded-xl shadow-md">
               <p className="font-semibold mb-2">
-                Order ID: {order.id} | Status: {order.status}
+                Order ID: {order.id} | Status: {order.status || "Pending"}
               </p>
 
               <ul className="divide-y">
@@ -73,7 +78,7 @@ export default function OrdersPage() {
               </ul>
 
               <p className="mt-3 font-bold">
-                Total: ₹{order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)}
+                Total: ₹{order.items.reduce((acc, i) => acc + (i.price * i.quantity || 0), 0)}
               </p>
 
               <p className="text-gray-500 text-sm mt-1">

@@ -1,7 +1,13 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "@/app/firebaseConfig";
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword } from "firebase/auth";
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  signInWithEmailAndPassword 
+} from "firebase/auth";
+import { db } from "@/app/firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -12,14 +18,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
+      if (firebaseUser && firebaseUser.emailVerified) {
         setUser(firebaseUser);
 
-        // 🚨 Replace this logic later with Firestore role check
-        if (firebaseUser.email === "admin@example.com") {
-          setRole("admin");
+        // 🔑 Check Firestore for role
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setRole(userSnap.data().role || "customer");
         } else {
-          setRole("user");
+          // if no doc → create one with default role
+          await setDoc(userRef, { 
+            email: firebaseUser.email, 
+            role: "customer" 
+          });
+          setRole("customer");
         }
       } else {
         setUser(null);
@@ -31,9 +45,15 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Add login function
   const login = async (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+    if (!userCredential.user.emailVerified) {
+      await signOut(auth);
+      throw new Error("Email not verified. Please check your inbox.");
+    }
+
+    return userCredential;
   };
 
   const logout = async () => {

@@ -1,22 +1,36 @@
+// /app/api/save-order/route.js
 import { db } from "@/app/firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { NextResponse } from "next/server";
 
-export async function POST(request) {
-  const { cart } = await request.json();
-  
-  // You should get the user ID from auth context on client side
-  const userId = request.headers.get("x-user-id"); 
 
-  if (!userId) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+// Optional: only if you want to verify ID token
+// import { getAuth } from "firebase-admin/auth";
 
-  const docRef = await addDoc(collection(db, "orders"), {
-    items: cart,
-    userId,
-    status: "Pending",
-    createdAt: serverTimestamp(),
-  });
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    const { cart, amount, paymentId, customer, userId, userEmail } = body;
 
-  return NextResponse.json({ id: docRef.id });
+    if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    if (!cart?.length) return new Response(JSON.stringify({ error: "Cart is empty" }), { status: 400 });
+    if (!customer?.name || !customer?.phone || !customer?.address)
+      return new Response(JSON.stringify({ error: "Customer info missing" }), { status: 400 });
+    if (!paymentId) return new Response(JSON.stringify({ error: "Payment ID missing" }), { status: 400 });
+
+    const docRef = await addDoc(collection(db, "orders"), {
+      userId,
+      userEmail,
+      cart,
+      amount,
+      paymentId,
+      customer,
+      status: "Paid",
+      createdAt: serverTimestamp(),
+    });
+
+    return new Response(JSON.stringify({ message: "Order saved", orderId: docRef.id }), { status: 200 });
+  } catch (err) {
+    console.error("❌ Save Order Error:", err);
+    return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { status: 500 });
+  }
 }

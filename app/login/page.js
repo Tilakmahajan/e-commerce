@@ -25,7 +25,18 @@ export default function LoginPage() {
         email.trim(),
         password
       );
-      const userId = userCredential.user.uid;
+      const user = userCredential.user;
+
+      // ✅ Check if email is verified
+      if (!user.emailVerified) {
+        setError(
+          "❌ Email not verified. Please check your inbox or spam folder."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const userId = user.uid;
 
       // Get user role from Firestore
       const userDoc = await getDoc(doc(db, "users", userId));
