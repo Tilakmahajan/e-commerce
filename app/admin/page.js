@@ -1,20 +1,39 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/app/firebaseConfig";
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { motion } from "framer-motion";
 import { useAuth } from "@/app/components/AuthContext";
+import Image from "next/image";
 
 export default function AdminPage() {
   const router = useRouter();
   const { user, role, loading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: "", description: "", price: "", image: "" });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image: "",
+  });
   const [editingId, setEditingId] = useState(null);
 
   const productsCollection = collection(db, "products");
+
+  // ✅ Fetch products (memoized for eslint)
+  const fetchProducts = useCallback(async () => {
+    const data = await getDocs(productsCollection);
+    setProducts(data.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  }, [productsCollection]);
 
   // ✅ Route protection for admin only
   useEffect(() => {
@@ -30,29 +49,41 @@ export default function AdminPage() {
         fetchProducts();
       }
     }
-  }, [user, role, loading, router]);
+  }, [user, role, loading, router, fetchProducts]);
 
-  const fetchProducts = async () => {
-    const data = await getDocs(productsCollection);
-    setProducts(data.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  };
-
+  // ✅ Handle Add / Edit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const productData = {
+      ...form,
+      price: Math.max(0, Number(form.price)), // prevent negative
+    };
+
     if (editingId) {
       const productDoc = doc(db, "products", editingId);
-      await updateDoc(productDoc, { ...form, price: Number(form.price) });
+      await updateDoc(productDoc, productData);
       setEditingId(null);
     } else {
-      await addDoc(productsCollection, { ...form, price: Number(form.price) });
+      await addDoc(productsCollection, productData);
     }
+
     setForm({ name: "", description: "", price: "", image: "" });
     fetchProducts();
   };
 
   const handleEdit = (product) => {
-    setForm(product);
+    setForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image,
+    });
     setEditingId(product.id);
+  };
+
+  const handleCancel = () => {
+    setForm({ name: "", description: "", price: "", image: "" });
+    setEditingId(null);
   };
 
   const handleDelete = async (id) => {
@@ -68,7 +99,9 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto px-6 py-12 text-black">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Admin Panel</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">
+        Admin Panel
+      </h1>
 
       <div className="mb-6 flex justify-center">
         <button
@@ -116,12 +149,24 @@ export default function AdminPage() {
           onChange={(e) => setForm({ ...form, image: e.target.value })}
           required
         />
-        <button
-          type="submit"
-          className="px-6 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-full shadow-lg hover:opacity-90 transition"
-        >
-          {editingId ? "Update Product" : "Add Product"}
-        </button>
+
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="flex-1 px-6 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-full shadow-lg hover:opacity-90 transition"
+          >
+            {editingId ? "Update Product" : "Add Product"}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 px-6 py-2 bg-gray-400 text-white rounded-full shadow-lg hover:opacity-90 transition"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Products list */}
@@ -134,11 +179,15 @@ export default function AdminPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <img
-              src={product.image}
-              alt={product.name}
-              className="h-48 w-full object-cover rounded-lg mb-4"
-            />
+            <Image
+  src={product.image}
+  alt={product.name}
+  width={400}
+  height={300}
+  className="h-48 w-full object-cover rounded-lg mb-4"
+  unoptimized
+/>
+
             <h2 className="font-semibold text-gray-900">{product.name}</h2>
             <p className="text-gray-600 line-clamp-2">{product.description}</p>
             <p className="font-semibold text-blue-600 mb-2">₹{product.price}</p>

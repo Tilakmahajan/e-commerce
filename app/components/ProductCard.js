@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useCart } from "@/app/components/CartContext";
 import { useAuth } from "@/app/components/AuthContext";
+import Image from "next/image";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -18,7 +19,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-4">
-      <img src={product.image} alt={product.name} className="h-40 w-full object-cover rounded-lg" />
+      <Image src={product.image} alt={product.name} className="h-40 w-full object-cover rounded-lg" />
       <h2 className="font-semibold mt-2">{product.name}</h2>
       <p className="text-gray-600">₹{product.price}</p>
       <button

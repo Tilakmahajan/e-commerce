@@ -6,7 +6,7 @@ import { CartProvider } from "@/app/components/CartContext";
 import { AuthProvider } from "./components/AuthContext";
 
 export const metadata = {
-  title: "E-Commerce Frontend",
+  title: "max-wholesaler",
   description: "Frontend-only E-commerce website with Next.js + Tailwind",
 };
 

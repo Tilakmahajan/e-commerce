@@ -4,8 +4,8 @@ import { useCart } from "@/app/components/CartContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/components/AuthContext";
 import { useState } from "react";
-import { db } from "@/app/firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/app/firebaseConfig";
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
@@ -15,15 +15,11 @@ export default function CheckoutPage() {
 
   const [customer, setCustomer] = useState({
     name: user?.displayName || "",
-    phone: "",
+    phone: user?.phoneNumber || "",
     address: "",
   });
 
-  // Ensure price is numeric
-  const total = cart.reduce(
-    (acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 0),
-    0
-  );
+  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handlePayment = async () => {
     if (!user) {
@@ -31,12 +27,10 @@ export default function CheckoutPage() {
       router.push("/login");
       return;
     }
-
     if (cart.length === 0) {
       alert("Your cart is empty.");
       return;
     }
-
     if (!customer.name || !customer.phone || !customer.address) {
       alert("Please fill all customer details.");
       return;
@@ -45,7 +39,7 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
 
-      // 1️⃣ Create Razorpay order from backend
+      // Create Razorpay order from backend
       const res = await fetch("/api/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,7 +49,6 @@ export default function CheckoutPage() {
       const order = await res.json();
       if (!order?.id) throw new Error("Failed to create Razorpay order");
 
-      // 2️⃣ Razorpay options
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
@@ -65,26 +58,11 @@ export default function CheckoutPage() {
         order_id: order.id,
         handler: async function (response) {
           try {
-            // 🔹 Log cart before saving
-            console.log("Saving order:", {
-              userId: user.uid,
-              userEmail: user.email,
-              cart,
-              total,
-              customer,
-              paymentId: response.razorpay_payment_id,
-            });
-
-            // 3️⃣ Save order directly to Firestore
+            // Save order directly in Firestore
             await addDoc(collection(db, "orders"), {
               userId: user.uid,
               userEmail: user.email,
-              cart: cart.map((item) => ({
-                id: item.id,
-                name: item.name,
-                price: Number(item.price || 0),
-                quantity: Number(item.quantity || 0),
-              })),
+              cart: cart.map((item) => ({ ...item, status: "Pending" })),
               amount: total,
               paymentId: response.razorpay_payment_id,
               customer,
@@ -97,7 +75,7 @@ export default function CheckoutPage() {
             router.push("/orders");
           } catch (err) {
             console.error("Save Order Error:", err);
-            alert("❌ Payment succeeded but failed to save order. Check console.");
+            alert("❌ Payment succeeded but failed to save order.");
           }
         },
         prefill: {
@@ -110,8 +88,8 @@ export default function CheckoutPage() {
 
       const rzp1 = new window.Razorpay(options);
       rzp1.open();
-    } catch (err) {
-      console.error("Payment Error:", err);
+    } catch (error) {
+      console.error("Payment Error:", error);
       alert("❌ Payment failed, please try again.");
     } finally {
       setLoading(false);
@@ -140,15 +118,17 @@ export default function CheckoutPage() {
             <ul className="divide-y">
               {cart.map((item, idx) => (
                 <li key={idx} className="flex justify-between py-3 text-gray-700">
-                  <span>{item.name} × {item.quantity}</span>
-                  <span className="font-medium">₹{Number(item.price || 0) * Number(item.quantity || 0)}</span>
+                  <span>
+                    {item.name} × {item.quantity}
+                  </span>
+                  <span className="font-medium">₹{item.price * item.quantity}</span>
                 </li>
               ))}
             </ul>
             <p className="text-xl font-bold mt-6 text-gray-900">Total: ₹{total}</p>
           </div>
 
-          {/* Customer Details + Payment */}
+          {/* Customer Details + Payment Button */}
           <div className="bg-white p-6 rounded-xl shadow-md flex flex-col justify-between">
             <div>
               <h2 className="text-2xl font-semibold mb-4">Customer Details</h2>
@@ -178,7 +158,9 @@ export default function CheckoutPage() {
               onClick={handlePayment}
               disabled={loading}
               className={`w-full px-6 py-3 rounded-lg font-semibold text-lg shadow-md ${
-                loading ? "bg-gray-400 text-gray-200 cursor-not-allowed" : "bg-green-600 text-white hover:bg-green-700"
+                loading
+                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
               }`}
             >
               {loading ? "Processing..." : `Pay ₹${total} with Razorpay`}

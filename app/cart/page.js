@@ -3,6 +3,7 @@ import { useCart } from "@/app/components/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
@@ -54,10 +55,13 @@ export default function CartPage() {
                   transition={{ duration: 0.4 }}
                 >
                   <div className="flex items-center gap-5">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
+                      width={100}
+                      height={100}
                       className="w-24 h-24 object-cover rounded-xl shadow"
+                      unoptimized
                     />
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
@@ -95,7 +99,7 @@ export default function CartPage() {
             </AnimatePresence>
           </div>
 
-          {/* Clean Order Summary Section */}
+          {/* Order Summary */}
           <motion.div
             className="bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-20 border border-gray-100"
             initial={{ opacity: 0, x: 50 }}
@@ -110,9 +114,7 @@ export default function CartPage() {
                   key={item.id}
                   className="flex justify-between text-gray-700 text-sm hover:bg-gray-50 px-3 py-2 rounded transition"
                 >
-                  <span>
-                    {item.name} × {item.quantity}
-                  </span>
+                  <span>{item.name} × {item.quantity}</span>
                   <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
