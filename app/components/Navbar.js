@@ -147,7 +147,7 @@ export default function Navbar() {
 
       {/* Mobile Links */}
       {menuOpen && (
-        <div className="md:hidden bg-white shadow-md border-t animate-slide-down">
+        <div className="md:hidden bg-white text-black shadow-md border-t animate-slide-down">
           <Link href="/" className="block px-6 py-3 hover:bg-gray-100">
             Home
           </Link>
