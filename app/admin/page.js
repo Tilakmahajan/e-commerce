@@ -19,7 +19,13 @@ export default function AdminPage() {
   const { user, role, loading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: "", description: "", price: "", image: "" });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image: "",
+    category: "",
+  });
   const [editingId, setEditingId] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -49,7 +55,11 @@ export default function AdminPage() {
       return;
     }
 
-    const productData = { ...form, price: Math.max(0, Number(form.price)) };
+    const productData = {
+      ...form,
+      price: Math.max(0, Number(form.price)),
+      category: form.category || "Uncategorized",
+    };
 
     try {
       if (editingId) {
@@ -59,7 +69,7 @@ export default function AdminPage() {
         await addDoc(productsCollection, productData);
       }
 
-      setForm({ name: "", description: "", price: "", image: "" });
+      setForm({ name: "", description: "", price: "", image: "", category: "" });
       document.getElementById("fileInput").value = "";
       fetchProducts();
     } catch (error) {
@@ -73,12 +83,13 @@ export default function AdminPage() {
       description: product.description || "",
       price: product.price || "",
       image: product.image || "",
+      category: product.category || "",
     });
     setEditingId(product.id);
   };
 
   const handleCancel = () => {
-    setForm({ name: "", description: "", price: "", image: "" });
+    setForm({ name: "", description: "", price: "", image: "", category: "" });
     setEditingId(null);
     document.getElementById("fileInput").value = "";
   };
@@ -151,6 +162,24 @@ export default function AdminPage() {
           required
         />
 
+        {/* Category dropdown */}
+        <select
+          className="border rounded-lg px-4 py-2"
+          value={form.category}
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          required
+        >
+          <option value="">Select Category</option>
+          <option value="Insulator">Insulator</option>
+          <option value="Solar French guard">Solar French guard</option>
+          <option value="Solar zatka machine">Solar zatka machine</option>
+          <option value="Torch">Torch</option>
+          <option value="Solar plate">Solar plate</option>
+          <option value="Battery">Battery</option>
+          <option value="Solar charge control">Solar charge control</option>
+          <option value="Light">Light</option>
+        </select>
+
         <input
           type="text"
           placeholder="Image URL"
@@ -204,6 +233,7 @@ export default function AdminPage() {
           >
             <Image src={product.image} alt={product.name} width={400} height={300} className="h-48 w-full object-cover rounded-lg mb-4" unoptimized />
             <h2 className="font-semibold text-gray-900">{product.name}</h2>
+            <p className="text-gray-500 mb-1">Category: {product.category}</p>
             <p className="text-gray-600 line-clamp-2">{product.description}</p>
             <p className="font-semibold text-blue-600 mb-2">₹{product.price}</p>
             <div className="flex gap-2 mt-auto">

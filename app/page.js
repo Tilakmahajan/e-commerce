@@ -4,9 +4,12 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/app/firebaseConfig";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const searchParams = useSearchParams();
+  const query = searchParams.get("search")?.toLowerCase() || "";
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -24,6 +27,14 @@ export default function Home() {
     };
     fetchProducts();
   }, []);
+
+  // Filter products based on search query
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name?.toLowerCase().includes(query) ||
+      p.description?.toLowerCase().includes(query) ||
+      p.category?.toLowerCase().includes(query)
+  );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -73,70 +84,76 @@ export default function Home() {
         />
       </section>
 
-      {/* Featured Products */}
+      {/* Featured / Search Results */}
       <section className="container mx-auto px-6 py-16">
         <h2 className="text-2xl font-bold mb-8 text-center text-gray-900">
-          Featured Products
+          {query ? "Search Results" : "Featured Products"}
         </h2>
 
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={{
-            hidden: {},
-            show: { transition: { staggerChildren: 0.2 } },
-          }}
-        >
-          {products.slice(0, 4).map((product) => (
-            <Link key={product.id} href={`/products/${product.id}`}>
-              <motion.div
-                className="relative bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer group"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0px 20px 40px rgba(0,0,0,0.15)",
-                }}
-                transition={{ duration: 0.4 }}
-              >
-                {/* Product Image */}
-                <motion.img
-                  src={product.image}
-                  alt={product.name}
-                  className="h-40 w-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
-                />
+        {filteredProducts.length === 0 ? (
+          <p className="text-center text-gray-600">No products found.</p>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.2 } },
+            }}
+          >
+            {(query ? filteredProducts : products.slice(0, 4)).map((product) => (
+              <Link key={product.id} href={`/products/${product.id}`}>
+                <motion.div
+                  className="relative bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0px 20px 40px rgba(0,0,0,0.15)",
+                  }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {/* Product Image */}
+                  <motion.img
+                    src={product.image}
+                    alt={product.name}
+                    className="h-40 w-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+                  />
 
-                {/* Price Badge */}
-                <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 font-bold px-3 py-1 rounded-full shadow-lg">
-                  ₹{product.price}
-                </span>
+                  {/* Price Badge */}
+                  <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 font-bold px-3 py-1 rounded-full shadow-lg">
+                    ₹{product.price}
+                  </span>
 
-                {/* Product Info */}
-                <div className="p-4 text-center">
-                  <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
-                </div>
-              </motion.div>
-            </Link>
-          ))}
-        </motion.div>
+                  {/* Product Info */}
+                  <div className="p-4 text-center">
+                    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                    <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </motion.div>
+        )}
 
         {/* View All Products Button */}
-        <motion.div
-          className="text-center mt-10"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <Link
-            href="/products"
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition text-lg"
+        {!query && (
+          <motion.div
+            className="text-center mt-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
           >
-            View All Products →
-          </Link>
-        </motion.div>
+            <Link
+              href="/products"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition text-lg"
+            >
+              View All Products →
+            </Link>
+          </motion.div>
+        )}
       </section>
     </div>
   );

@@ -2,124 +2,130 @@
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { ShoppingCart, Menu } from "lucide-react";
+import { ShoppingCart, User } from "lucide-react";
 
 export default function Navbar() {
   const { cart } = useCart();
-  const { user, role, logout, loading } = useAuth(); // include loading
+  const { user, role, logout, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.get("search") || "";
+
   const [mounted, setMounted] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(query);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     }
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (dropdownOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
   if (!mounted || loading) return null;
 
-  // Determine order page based on role
   const ordersLink = role === "admin" ? "/admin/orders" : "/orders";
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("search", value);
+    else params.delete("search");
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="sticky top-0 z-50 bg-white shadow-md border-b">
+      <div className="container mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
         {/* Logo */}
         <Link
           href="/"
-          className="text-2xl font-extrabold text-blue-600 tracking-tight hover:scale-105 transition-transform"
+          className="text-2xl md:text-3xl font-extrabold text-gray-900 hover:text-blue-600 transition whitespace-nowrap"
         >
-          🛍️ MyStore
+          <span className="md:inline hidden">🛍️ MyStore</span>
+          <span className="md:hidden inline">🛍️</span>
         </Link>
+
+        {/* Search bar */}
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="flex-1 max-w-xs md:max-w-md px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm placeholder-gray-500 text-gray-900"
+        />
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-6 font-medium">
-          <Link href="/" className="text-gray-700 hover:text-blue-600 transition">
+          <Link href="/" className="text-gray-800 hover:text-blue-600 transition">
             Home
           </Link>
-          <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">
+          <Link href="/products" className="text-gray-800 hover:text-blue-600 transition">
             Products
           </Link>
-          <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">
+          <Link href="/contact" className="text-gray-800 hover:text-blue-600 transition">
             Contact Us
           </Link>
-
-          {/* Orders & Admin Dashboard (only if logged in & email verified) */}
           {user?.emailVerified && (
-            <>
-              <Link href={ordersLink} className="text-gray-700 hover:text-blue-600 transition">
-                Orders
-              </Link>
-              {role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="text-red-600 font-semibold hover:text-red-500 transition"
-                >
-                  Admin Dashboard
-                </Link>
-              )}
-            </>
+            <Link href={ordersLink} className="text-gray-800 hover:text-blue-600 transition">
+              Orders
+            </Link>
           )}
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center gap-5">
+        {/* Right Side Icons */}
+        <div className="flex items-center gap-4">
           {/* Cart */}
-          <Link href="/cart" className="relative group">
-            <ShoppingCart className="w-7 h-7 text-gray-700 group-hover:text-blue-600 transition" />
+          <Link href="/cart" className="relative">
+            <ShoppingCart className="w-6 h-6 text-gray-800 hover:text-blue-600 transition" />
             {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
                 {cart.length}
               </span>
             )}
           </Link>
 
-          {/* Auth */}
+          {/* Profile/Login */}
           {user?.emailVerified ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-md hover:opacity-90 transition-all font-medium"
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
               >
-                {user.email.split("@")[0]}
+                <User className="w-6 h-6 text-gray-800" />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-lg border animate-fade-in">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border z-50 animate-fade-in">
+                  <div className="px-4 py-2 border-b font-medium text-gray-800">
+                    {user.email.split("@")[0]}
+                  </div>
                   <Link
                     href={ordersLink}
-                    className="block px-4 py-3 hover:bg-gray-100 text-gray-700 text-sm"
+                    className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
                   >
                     My Orders
                   </Link>
                   {role === "admin" && (
                     <Link
                       href="/admin"
-                      className="block px-4 py-3 hover:bg-gray-100 text-red-600 text-sm"
+                      className="block px-4 py-2 hover:bg-gray-100 text-red-600 text-sm"
                     >
                       Admin Dashboard
                     </Link>
                   )}
                   <button
                     onClick={logout}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600 text-sm"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm"
                   >
                     Logout
                   </button>
@@ -129,48 +135,13 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => router.push("/login")}
-              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-md hover:opacity-90 transition-all font-semibold"
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-semibold transition"
             >
               Login
             </button>
           )}
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <Menu className="w-6 h-6 text-gray-700" />
-          </button>
         </div>
       </div>
-
-      {/* Mobile Links */}
-      {menuOpen && (
-        <div className="md:hidden bg-white text-black shadow-md border-t animate-slide-down">
-          <Link href="/" className="block px-6 py-3 hover:bg-gray-100">
-            Home
-          </Link>
-          <Link href="/products" className="block px-6 py-3 hover:bg-gray-100">
-            Products
-          </Link>
-          <Link href="/contact" className="block px-6 py-3 hover:bg-gray-100">
-            Contact Us
-          </Link>
-          {user?.emailVerified && (
-            <>
-              <Link href={ordersLink} className="block px-6 py-3 hover:bg-gray-100">
-                Orders
-              </Link>
-              {role === "admin" && (
-                <Link href="/admin" className="block px-6 py-3 text-red-600 font-semibold hover:bg-gray-100">
-                  Admin Dashboard
-                </Link>
-              )}
-            </>
-          )}
-        </div>
-      )}
     </nav>
   );
 }
