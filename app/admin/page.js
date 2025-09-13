@@ -170,7 +170,6 @@ export default function AdminPage() {
           className="border rounded-lg px-4 py-2"
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
-          required
         >
           <option value="">Select Category</option>
           <option value="Insulator">Insulator</option>
