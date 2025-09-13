@@ -128,8 +128,8 @@ export default function AdminPage() {
     return <p className="text-center mt-20 text-lg">Checking access...</p>;
 
   return (
-    <div className="container mx-auto px-6 py-12 text-black">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Admin Panel</h1>
+    <div className="container mx-auto px-4 py-8 md:px-6 text-black">
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center text-gray-900">Admin Panel</h1>
 
       <div className="mb-6 flex justify-center">
         <button
@@ -145,7 +145,7 @@ export default function AdminPage() {
         <input
           type="text"
           placeholder="Product Name"
-          className="border rounded-lg px-4 py-2"
+          className="border rounded-lg px-4 py-2 w-full"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
@@ -153,7 +153,7 @@ export default function AdminPage() {
         <input
           type="text"
           placeholder="Description"
-          className="border rounded-lg px-4 py-2"
+          className="border rounded-lg px-4 py-2 w-full"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
           required
@@ -161,13 +161,13 @@ export default function AdminPage() {
         <input
           type="number"
           placeholder="Price"
-          className="border rounded-lg px-4 py-2"
+          className="border rounded-lg px-4 py-2 w-full"
           value={form.price}
           onChange={(e) => setForm({ ...form, price: e.target.value })}
           required
         />
         <select
-          className="border rounded-lg px-4 py-2"
+          className="border rounded-lg px-4 py-2 w-full"
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         >
@@ -186,7 +186,7 @@ export default function AdminPage() {
           id="fileInput"
           type="file"
           accept="image/*"
-          className="border rounded-lg px-4 py-2"
+          className="border rounded-lg px-4 py-2 w-full"
           onChange={handleImageUpload}
           multiple
         />
@@ -222,7 +222,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
           <button
             type="submit"
             disabled={uploading}
@@ -235,7 +235,11 @@ export default function AdminPage() {
             {uploading ? "Uploading..." : editingId ? "Update Product" : "Add Product"}
           </button>
           {editingId && (
-            <button type="button" onClick={handleCancel} className="flex-1 px-6 py-2 bg-gray-400 text-white rounded-full shadow-lg hover:opacity-90 transition">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 px-6 py-2 bg-gray-400 text-white rounded-full shadow-lg hover:opacity-90 transition"
+            >
               Cancel
             </button>
           )}
@@ -243,7 +247,7 @@ export default function AdminPage() {
       </form>
 
       {/* Products List */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {products.map((product) => (
           <motion.div
             key={product.id}
@@ -252,10 +256,10 @@ export default function AdminPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {/* Show all images in carousel */}
+            {/* Images carousel */}
             <div className="flex overflow-x-auto gap-2 mb-4">
               {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, idx) => (
-                <div key={idx} className="flex-shrink-0 w-64 h-48 relative">
+                <div key={idx} className="flex-shrink-0 w-full sm:w-64 h-48 relative">
                   <Image
                     src={img}
                     alt={`${product.name} ${idx}`}
@@ -273,9 +277,19 @@ export default function AdminPage() {
             <p className="text-gray-600 line-clamp-2">{product.description}</p>
             <p className="font-semibold text-blue-600 mb-2">₹{product.price}</p>
 
-            <div className="flex gap-2 mt-auto">
-              <button onClick={() => handleEdit(product)} className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">Edit</button>
-              <button onClick={() => handleDelete(product.id)} className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Delete</button>
+            <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+              <button
+                onClick={() => handleEdit(product)}
+                className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(product.id)}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              >
+                Delete
+              </button>
             </div>
           </motion.div>
         ))}

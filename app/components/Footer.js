@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-6 mt-12">
+    <footer className="bg-gray-900 text-white py-3 ">
       <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
         {/* Logo */}
         <h2 className="text-xl font-bold">MyShop</h2>
