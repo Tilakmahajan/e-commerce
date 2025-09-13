@@ -5,12 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { auth, db } from "@/app/firebaseConfig";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { Eye, EyeOff } from "lucide-react"; // Correct professional icons
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -20,18 +24,22 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !confirmPassword) {
       setError("Please fill all fields.");
       setLoading(false);
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError("⚠️ Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // 1️⃣ Create user
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCredential.user;
 
-      // 2️⃣ Store user in Firestore
       await setDoc(doc(db, "users", user.uid), {
         name: name.trim(),
         email: user.email,
@@ -39,11 +47,8 @@ export default function RegisterPage() {
         createdAt: new Date(),
       });
 
-      // 3️⃣ Send verification email
       await sendEmailVerification(user);
-
-      // 4️⃣ Show success message
-      setToast("✅ Registration successful! Please check your email to verify your account.");
+      setToast("✅ Registration successful! Check your email to verify your account.");
     } catch (err) {
       console.error(err);
       if (err.code === "auth/email-already-in-use") {
@@ -104,14 +109,41 @@ export default function RegisterPage() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm pr-10"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </span>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative">
+            <input
+              type={showConfirm ? "text" : "password"}
+              placeholder="Confirm Password"
+              className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm pr-10"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowConfirm(!showConfirm)}
+            >
+              {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+            </span>
+          </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 

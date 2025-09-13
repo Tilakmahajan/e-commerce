@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
@@ -8,19 +9,19 @@ import { ShoppingCart, User } from "lucide-react";
 
 export default function Navbar() {
   const { cart } = useCart();
-  const { user, role, logout, loading } = useAuth();
+  const { user, role, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const query = searchParams.get("search") || "";
+  const query = searchParams?.get("search") || "";
 
-  const [mounted, setMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  useEffect(() => setSearchTerm(query), [query]);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(query);
   const dropdownRef = useRef(null);
 
-  useEffect(() => setMounted(true), []);
-
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -31,22 +32,23 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
-  if (!mounted || loading) return null;
-
   const ordersLink = role === "admin" ? "/admin/orders" : "/orders";
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    const params = new URLSearchParams(searchParams.toString());
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(searchParams?.toString() || "");
     if (value) params.set("search", value);
     else params.delete("search");
+
     router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md border-b">
-      <div className="container mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+      <div className="container mx-auto px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
         {/* Logo */}
         <Link
           href="/"
@@ -62,33 +64,25 @@ export default function Navbar() {
           placeholder="Search products..."
           value={searchTerm}
           onChange={handleSearchChange}
-          className="flex-1 max-w-xs md:max-w-md px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm placeholder-gray-500 text-gray-900"
+          className="flex-1 min-w-[140px] max-w-full md:max-w-md px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm placeholder-gray-500 text-gray-900"
         />
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-6 font-medium">
-          <Link href="/" className="text-gray-800 hover:text-blue-600 transition">
-            Home
-          </Link>
-          <Link href="/products" className="text-gray-800 hover:text-blue-600 transition">
-            Products
-          </Link>
-          <Link href="/contact" className="text-gray-800 hover:text-blue-600 transition">
-            Contact Us
-          </Link>
+          <Link href="/" className="text-gray-800 hover:text-blue-600 transition">Home</Link>
+          <Link href="/products" className="text-gray-800 hover:text-blue-600 transition">Products</Link>
+          <Link href="/contact" className="text-gray-800 hover:text-blue-600 transition">Contact Us</Link>
           {user?.emailVerified && (
-            <Link href={ordersLink} className="text-gray-800 hover:text-blue-600 transition">
-              Orders
-            </Link>
+            <Link href={ordersLink} className="text-gray-800 hover:text-blue-600 transition">Orders</Link>
           )}
         </div>
 
         {/* Right Side Icons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           {/* Cart */}
           <Link href="/cart" className="relative">
             <ShoppingCart className="w-6 h-6 text-gray-800 hover:text-blue-600 transition" />
-            {cart.length > 0 && (
+            {cart?.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
                 {cart.length}
               </span>
@@ -96,7 +90,7 @@ export default function Navbar() {
           </Link>
 
           {/* Profile/Login */}
-          {user?.emailVerified ? (
+          {user ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -104,17 +98,20 @@ export default function Navbar() {
               >
                 <User className="w-6 h-6 text-gray-800" />
               </button>
+
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border z-50 animate-fade-in">
                   <div className="px-4 py-2 border-b font-medium text-gray-800">
-                    {user.email.split("@")[0]}
+                    {user.email?.split("@")[0]}
                   </div>
-                  <Link
-                    href={ordersLink}
-                    className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
-                  >
-                    My Orders
-                  </Link>
+                  {user.emailVerified && (
+                    <Link
+                      href={ordersLink}
+                      className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
+                    >
+                      My Orders
+                    </Link>
+                  )}
                   {role === "admin" && (
                     <Link
                       href="/admin"

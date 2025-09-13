@@ -117,9 +117,9 @@ export default function Home() {
                 >
                   {/* Product Image */}
                   <motion.img
-                    src={product.image}
+                    src={product.images && product.images.length > 0 ? product.images[0] : product.image}
                     alt={product.name}
-                    className="h-40 w-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+                    className="w-full h-64 object-contain transition-transform duration-500 group-hover:scale-105"
                   />
 
                   {/* Price Badge */}
@@ -138,7 +138,6 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* View All Products Button */}
         {!query && (
           <motion.div
             className="text-center mt-10"

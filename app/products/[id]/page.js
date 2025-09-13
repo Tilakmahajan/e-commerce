@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/firebaseConfig";
@@ -12,6 +12,9 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const [toast, setToast] = useState(null);
+  const [currentImg, setCurrentImg] = useState(0); // current image index
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -36,23 +39,82 @@ export default function ProductDetailsPage() {
 
   if (!product) return <p className="text-center py-20">Loading...</p>;
 
+  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+
+  const handlePrev = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const handleNext = () => setCurrentImg((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+
+  // Mobile swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) handleNext(); // swipe left
+    if (touchEndX.current - touchStartX.current > 50) handlePrev(); // swipe right
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-12">
       <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12">
-        {/* Product Image */}
+        {/* Product Image Carousel */}
         <motion.div
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
+          className="bg-white rounded-2xl shadow-lg overflow-hidden relative"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          <motion.img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-96 object-cover rounded-2xl"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.4 }}
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentImg}
+              src={images[currentImg]}
+              alt={product.name}
+              className="w-full h-[500px] object-contain rounded-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            />
+          </AnimatePresence>
+
+          {/* Prev / Next Buttons */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={handlePrev}
+                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-40 text-white px-3 py-2 rounded-full hover:bg-opacity-60 transition hidden md:block"
+              >
+                ◀
+              </button>
+              <button
+                onClick={handleNext}
+                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-40 text-white px-3 py-2 rounded-full hover:bg-opacity-60 transition hidden md:block"
+              >
+                ▶
+              </button>
+            </>
+          )}
+
+          {/* Mobile Indicators */}
+          {images.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`w-3 h-3 rounded-full transition ${
+                    idx === currentImg ? "bg-blue-600" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Product Info */}

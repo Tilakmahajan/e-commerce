@@ -15,7 +15,6 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState(query);
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -30,12 +29,10 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  // Update searchTerm if URL changes
   useEffect(() => {
     setSearchTerm(query);
   }, [query]);
 
-  // Filter products by category & search
   useEffect(() => {
     let tempProducts = products;
     if (selectedCategory) tempProducts = tempProducts.filter(p => p.category === selectedCategory);
@@ -94,9 +91,9 @@ export default function ProductsPage() {
                 transition={{ duration: 0.4 }}
               >
                 <motion.img
-                  src={product.image}
+                  src={product.images && product.images.length > 0 ? product.images[0] : product.image}
                   alt={product.name}
-                  className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+                  className="w-full h-64 object-contain transition-transform duration-500 group-hover:scale-105"
                 />
                 <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 font-bold px-3 py-1 rounded-full shadow-lg">
                   ₹{product.price}
