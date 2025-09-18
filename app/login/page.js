@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { auth, db } from "@/app/firebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,15 +11,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
 
     try {
-      // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -27,18 +28,13 @@ export default function LoginPage() {
       );
       const user = userCredential.user;
 
-      // ✅ Check if email is verified
       if (!user.emailVerified) {
-        setError(
-          "❌ Email not verified. Please check your inbox or spam folder."
-        );
+        setError("❌ Email not verified. Please check your inbox or spam folder.");
         setLoading(false);
         return;
       }
 
       const userId = user.uid;
-
-      // Get user role from Firestore
       const userDoc = await getDoc(doc(db, "users", userId));
 
       if (!userDoc.exists()) {
@@ -50,9 +46,9 @@ export default function LoginPage() {
       const role = userDoc.data()?.role;
 
       if (role === "admin") {
-        router.push("/admin"); // redirect admin
+        router.push("/admin");
       } else if (role === "customer") {
-        router.push("/"); // redirect customer
+        router.push("/");
       } else {
         setError("Invalid role. Please contact support.");
       }
@@ -61,6 +57,21 @@ export default function LoginPage() {
       setError("Invalid email or password.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("⚠️ Please enter your email to reset password.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setMessage("✅ Password reset email sent! Check your inbox.");
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to send reset email. Please check the email entered.");
     }
   };
 
@@ -73,9 +84,7 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md"
       >
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-          Login
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
 
         {error && (
           <motion.p
@@ -84,6 +93,16 @@ export default function LoginPage() {
             animate={{ opacity: 1 }}
           >
             {error}
+          </motion.p>
+        )}
+
+        {message && (
+          <motion.p
+            className="text-green-600 mb-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {message}
           </motion.p>
         )}
 
@@ -99,11 +118,19 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+
+        {/* Forgot password */}
+        <p
+          onClick={handleForgotPassword}
+          className="text-sm text-blue-600 cursor-pointer hover:underline text-right mb-6"
+        >
+          Forgot Password?
+        </p>
 
         <button
           type="submit"

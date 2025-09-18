@@ -15,11 +15,15 @@ export default function Navbar() {
   const searchParams = useSearchParams();
   const query = searchParams?.get("search") || "";
 
-  const [searchTerm, setSearchTerm] = useState("");
-  useEffect(() => setSearchTerm(query), [query]);
-
+  const [searchTerm, setSearchTerm] = useState(query);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [hydratedUser, setHydratedUser] = useState(null);
+
+  // ✅ Keep Navbar in sync with AuthContext
+  useEffect(() => {
+    setHydratedUser(user); // updates immediately when user changes
+  }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -37,7 +41,6 @@ export default function Navbar() {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(searchParams?.toString() || "");
     if (value) params.set("search", value);
@@ -69,11 +72,19 @@ export default function Navbar() {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-6 font-medium">
-          <Link href="/" className="text-gray-800 hover:text-blue-600 transition">Home</Link>
-          <Link href="/products" className="text-gray-800 hover:text-blue-600 transition">Products</Link>
-          <Link href="/contact" className="text-gray-800 hover:text-blue-600 transition">Contact Us</Link>
-          {user?.emailVerified && (
-            <Link href={ordersLink} className="text-gray-800 hover:text-blue-600 transition">Orders</Link>
+          <Link href="/" className="text-gray-800 hover:text-blue-600 transition">
+            Home
+          </Link>
+          <Link href="/products" className="text-gray-800 hover:text-blue-600 transition">
+            Products
+          </Link>
+          <Link href="/contact" className="text-gray-800 hover:text-blue-600 transition">
+            Contact Us
+          </Link>
+          {hydratedUser?.emailVerified && (
+            <Link href={ordersLink} className="text-gray-800 hover:text-blue-600 transition">
+              Orders
+            </Link>
           )}
         </div>
 
@@ -90,7 +101,7 @@ export default function Navbar() {
           </Link>
 
           {/* Profile/Login */}
-          {user ? (
+          {hydratedUser ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -102,9 +113,9 @@ export default function Navbar() {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border z-50 animate-fade-in">
                   <div className="px-4 py-2 border-b font-medium text-gray-800">
-                    {user.email?.split("@")[0]}
+                    {hydratedUser.email?.split("@")[0]}
                   </div>
-                  {user.emailVerified && (
+                  {hydratedUser.emailVerified && (
                     <Link
                       href={ordersLink}
                       className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
