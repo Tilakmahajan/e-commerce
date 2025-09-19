@@ -19,16 +19,50 @@ export default function CheckoutPage() {
     address: "",
   });
 
+  const [paymentMethod, setPaymentMethod] = useState("cod"); // ✅ Default COD
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  const handlePayment = async () => {
+  // ✅ Cash on Delivery handler
+  const handlePlaceOrderCOD = async () => {
     if (!user) {
       alert("⚠️ Please login first to place order.");
       router.push("/login");
       return;
     }
-    if (cart.length === 0) {
-      alert("Your cart is empty.");
+    if (!customer.name || !customer.phone || !customer.address) {
+      alert("Please fill all customer details.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await addDoc(collection(db, "orders"), {
+        userId: user.uid,
+        userEmail: user.email,
+        cart: cart.map((item) => ({ ...item, status: "Pending" })),
+        amount: total,
+        paymentMethod: "COD",
+        customer,
+        status: "Pending",
+        createdAt: serverTimestamp(),
+      });
+
+      clearCart();
+      alert("✅ Order placed successfully with Cash on Delivery!");
+      router.push("/orders");
+    } catch (err) {
+      console.error("COD Order Error:", err);
+      alert("❌ Failed to place COD order.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Razorpay handler
+  const handlePaymentRazorpay = async () => {
+    if (!user) {
+      alert("⚠️ Please login first to place order.");
+      router.push("/login");
       return;
     }
     if (!customer.name || !customer.phone || !customer.address) {
@@ -58,7 +92,6 @@ export default function CheckoutPage() {
         order_id: order.id,
         handler: async function (response) {
           try {
-            // Save order directly in Firestore
             await addDoc(collection(db, "orders"), {
               userId: user.uid,
               userEmail: user.email,
@@ -66,6 +99,7 @@ export default function CheckoutPage() {
               amount: total,
               paymentId: response.razorpay_payment_id,
               customer,
+              paymentMethod: "Razorpay",
               status: "Paid",
               createdAt: serverTimestamp(),
             });
@@ -96,6 +130,14 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleSubmit = () => {
+    if (paymentMethod === "cod") {
+      handlePlaceOrderCOD();
+    } else {
+      handlePaymentRazorpay();
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-12 text-black">
       <h1 className="text-4xl font-bold mb-8 text-gray-900">Checkout</h1>
@@ -117,18 +159,25 @@ export default function CheckoutPage() {
             <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
             <ul className="divide-y">
               {cart.map((item, idx) => (
-                <li key={idx} className="flex justify-between py-3 text-gray-700">
+                <li
+                  key={idx}
+                  className="flex justify-between py-3 text-gray-700"
+                >
                   <span>
                     {item.name} × {item.quantity}
                   </span>
-                  <span className="font-medium">₹{item.price * item.quantity}</span>
+                  <span className="font-medium">
+                    ₹{item.price * item.quantity}
+                  </span>
                 </li>
               ))}
             </ul>
-            <p className="text-xl font-bold mt-6 text-gray-900">Total: ₹{total}</p>
+            <p className="text-xl font-bold mt-6 text-gray-900">
+              Total: ₹{total}
+            </p>
           </div>
 
-          {/* Customer Details + Payment Button */}
+          {/* Customer Details + Payment Options */}
           <div className="bg-white p-6 rounded-xl shadow-md flex flex-col justify-between">
             <div>
               <h2 className="text-2xl font-semibold mb-4">Customer Details</h2>
@@ -136,26 +185,58 @@ export default function CheckoutPage() {
                 type="text"
                 placeholder="Full Name"
                 value={customer.name}
-                onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
+                onChange={(e) =>
+                  setCustomer({ ...customer, name: e.target.value })
+                }
                 className="w-full mb-3 p-3 border rounded-lg"
               />
               <input
                 type="tel"
                 placeholder="Phone Number"
                 value={customer.phone}
-                onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                onChange={(e) =>
+                  setCustomer({ ...customer, phone: e.target.value })
+                }
                 className="w-full mb-3 p-3 border rounded-lg"
               />
               <textarea
                 placeholder="Delivery Address"
                 value={customer.address}
-                onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
+                onChange={(e) =>
+                  setCustomer({ ...customer, address: e.target.value })
+                }
                 className="w-full mb-6 p-3 border rounded-lg resize-none"
                 rows={4}
               />
+
+              {/* Payment Options */}
+              <h2 className="text-xl font-semibold mb-3">Payment Method</h2>
+              <div className="flex flex-col gap-3 mb-6">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  Cash on Delivery (COD)
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="razorpay"
+                    checked={paymentMethod === "razorpay"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  Razorpay (UPI / Card / Netbanking)
+                </label>
+              </div>
             </div>
+
             <button
-              onClick={handlePayment}
+              onClick={handleSubmit}
               disabled={loading}
               className={`w-full px-6 py-3 rounded-lg font-semibold text-lg shadow-md ${
                 loading
@@ -163,7 +244,11 @@ export default function CheckoutPage() {
                   : "bg-green-600 text-white hover:bg-green-700"
               }`}
             >
-              {loading ? "Processing..." : `Pay ₹${total} with Razorpay`}
+              {loading
+                ? "Processing..."
+                : paymentMethod === "cod"
+                ? "Place Order (COD)"
+                : `Pay ₹${total} with Razorpay`}
             </button>
           </div>
         </div>

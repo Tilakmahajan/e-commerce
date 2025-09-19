@@ -93,19 +93,30 @@ export default function AdminOrdersPage() {
           {orders.map((order) => {
             const status = order.status || "Pending";
             const isDelivered = status === "Delivered";
+            const isCOD = order.paymentMethod === "COD";
 
             return (
               <motion.div
                 key={order.id}
-                className="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition"
+                className={`bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition ${
+                  isCOD ? "border-2 border-yellow-500" : ""
+                }`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
               >
                 <div className="mb-4">
-                  <h2 className="font-semibold text-lg text-gray-800 mb-2">
-                    Customer: {order.customer?.name || "Unknown"}
-                  </h2>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="font-semibold text-lg text-gray-800">
+                      Customer: {order.customer?.name || "Unknown"}
+                    </h2>
+                    {isCOD && (
+                      <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-1 rounded">
+                        COD
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-gray-700 mb-1">
                     Email: {order.userEmail || "Unknown"}
                   </p>
@@ -116,7 +127,14 @@ export default function AdminOrdersPage() {
                     Address: {order.customer?.address || "N/A"}
                   </p>
                   <p className="text-gray-700 mb-2">
-                    Payment ID: {order.paymentId || "N/A"}
+                    Payment:{" "}
+                    {isCOD ? (
+                      <span className="font-semibold text-yellow-600">
+                        Cash on Delivery
+                      </span>
+                    ) : (
+                      order.paymentId || "N/A"
+                    )}
                   </p>
                   <p className="text-gray-700 mb-2">
                     Status: <span className="font-bold">{status}</span>

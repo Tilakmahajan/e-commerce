@@ -36,7 +36,11 @@ export default function CustomerOrdersPage() {
 
     setFetching(true);
     const ordersCol = collection(db, "orders");
-    const q = query(ordersCol, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    const q = query(
+      ordersCol,
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -53,22 +57,28 @@ export default function CustomerOrdersPage() {
     return () => unsubscribe();
   }, [user, loading, router]);
 
-  if (loading || fetching) return <p className="text-center mt-20 text-lg">Loading your orders...</p>;
+  if (loading || fetching)
+    return <p className="text-center mt-20 text-lg">Loading your orders...</p>;
   if (!user) return null;
 
   return (
     <div className="container mx-auto px-6 py-12 text-black">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900 text-center">My Orders</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 text-center">
+        My Orders
+      </h1>
 
       {orders.length === 0 ? (
-        <p className="text-center text-gray-600 mt-10">You haven’t placed any orders yet.</p>
+        <p className="text-center text-gray-600 mt-10">
+          You haven’t placed any orders yet.
+        </p>
       ) : (
         <div className="space-y-6">
           {orders.map((order) => {
             const norm = normalizeStatus(order.status);
             const currentStep = ["pending", "shipped", "delivered"].indexOf(norm);
             const createdAtLabel =
-              order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString() : "";
+              order.createdAt?.toDate?.() &&
+              order.createdAt.toDate().toLocaleString();
 
             return (
               <motion.div
@@ -86,7 +96,9 @@ export default function CustomerOrdersPage() {
                     </h2>
                     <p className="text-xs text-gray-500 mt-1">{createdAtLabel}</p>
                   </div>
-                  <div className="text-sm font-medium text-gray-800">₹{order.amount || 0}</div>
+                  <div className="text-sm font-medium text-gray-800">
+                    ₹{order.amount || 0}
+                  </div>
                 </div>
 
                 {/* Progress Timeline */}
@@ -100,7 +112,9 @@ export default function CustomerOrdersPage() {
                           <div className="flex flex-col items-center w-full">
                             <div
                               className={`w-9 h-9 flex items-center justify-center rounded-full ${
-                                active ? "bg-blue-600 text-white" : "bg-white ring-1 ring-gray-200 text-gray-500"
+                                active
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-white ring-1 ring-gray-200 text-gray-500"
                               }`}
                             >
                               <Icon className="w-4 h-4" />
@@ -145,7 +159,12 @@ export default function CustomerOrdersPage() {
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-3">
                   <div className="text-xs text-gray-500">
-                    Payment ID: <span className="text-gray-700">{order.paymentId || "—"}</span>
+                    Payment:{" "}
+                    <span className="text-gray-700">
+                      {order.paymentMethod === "COD"
+                        ? "Cash on Delivery"
+                        : order.paymentId || "—"}
+                    </span>
                   </div>
                   <div
                     className={`text-sm font-semibold ${
