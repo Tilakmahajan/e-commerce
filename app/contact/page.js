@@ -21,12 +21,15 @@ export default function ContactUs() {
     const text = `Hello! I am ${name} (${email}). %0A%0A${message}`;
 
     // Open WhatsApp chat with pre-filled message
-    window.open(`https://wa.me/${serviceNumber}?text=${encodeURIComponent(text)}`, "_blank");
+    window.open(
+      `https://wa.me/${serviceNumber}?text=${encodeURIComponent(text)}`,
+      "_blank"
+    );
   };
 
   return (
     <div className="container mx-auto px-6 py-16">
-      <h1 className="text-5xl font-extrabold mb-12 text-center  text-yellow-500 drop-shadow-lg">
+      <h1 className="text-4xl font-extrabold mb-12 text-center text-yellow-500 drop-shadow-lg">
         MAX WHOLESALER
       </h1>
 
@@ -38,7 +41,9 @@ export default function ContactUs() {
         transition={{ duration: 0.6 }}
       >
         <div className="bg-white p-8 rounded-2xl shadow-lg flex flex-col gap-4 hover:shadow-2xl transition duration-300">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">Contact Info</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+            Contact Info
+          </h2>
           <p className="text-gray-700">
             <span className="font-semibold">Shop:</span> 8530619001
           </p>
@@ -49,12 +54,15 @@ export default function ContactUs() {
             <span className="font-semibold">Service:</span> WhatsApp 9322272933
           </p>
           <p className="text-gray-700 mt-4">
-            <span className="font-semibold">Branches:</span> Soegaon | Shendurni | Jalgaon
+            <span className="font-semibold">Branches:</span> Soegaon | Shendurni
+            | Jalgaon
           </p>
         </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-lg flex flex-col gap-4 hover:shadow-2xl transition duration-300">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">Services / Products</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+            Services / Products
+          </h2>
           <ul className="list-disc list-inside space-y-1 text-gray-700">
             <li>Solar Zatka Machine</li>
             <li>Solar Camera</li>
@@ -72,7 +80,24 @@ export default function ContactUs() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Contact Form - Left */}
+          {/* Google Map - left */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-white rounded-2xl shadow-lg overflow-hidden h-[400px] hover:shadow-2xl transition duration-300"
+        >
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3734.8885819930747!2d75.6211204!3d20.5926072!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd979c447b91113%3A0x94401379dcbf52af!2sBhairavnath%20Tyres%20And%20Battery!5e0!3m2!1sen!2sin!4v1758814050850!5m2!1sen!2sin"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </motion.div>
+        {/* Contact Form - right */}
         <motion.form
           onSubmit={handleSendMessage}
           className="bg-gray-50 p-8 rounded-2xl text-black shadow-lg flex flex-col gap-6 hover:shadow-2xl transition duration-300"
@@ -111,24 +136,10 @@ export default function ContactUs() {
             Send Message
           </button>
         </motion.form>
-
-        {/* Google Map - Right */}
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden h-[400px] hover:shadow-2xl transition duration-300"
-        >
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3023.123456!2d-73.987654!3d40.712776!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x123456789abcdef!2sYour+Business+Location!5e0!3m2!1sen!2sin!4v1234567890"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-          ></iframe>
-        </motion.div>
+        
+      
       </motion.div>
+
 
       {/* WhatsApp Floating Button */}
       <button

@@ -5,7 +5,7 @@ import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart, User, Mail } from "lucide-react";
 
 export default function Navbar() {
   const { cart } = useCart();
@@ -22,7 +22,7 @@ export default function Navbar() {
 
   // ✅ Keep Navbar in sync with AuthContext
   useEffect(() => {
-    setHydratedUser(user); // updates immediately when user changes
+    setHydratedUser(user);
   }, [user]);
 
   // Close dropdown when clicking outside
@@ -90,15 +90,25 @@ export default function Navbar() {
 
         {/* Right Side Icons */}
         <div className="flex items-center gap-4 shrink-0">
-          {/* Cart */}
-          <Link href="/cart" className="relative">
-            <ShoppingCart className="w-6 h-6 text-gray-800 hover:text-blue-600 transition" />
-            {cart?.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
-                {cart.length}
-              </span>
-            )}
-          </Link>
+          {/* ✅ Mobile special case: Home + Not Logged In → Contact Us */}
+          {!hydratedUser && pathname === "/" ? (
+            <Link
+              href="/contact"
+              className="flex items-center gap-1 text-gray-800 hover:text-blue-600 transition md:hidden"
+            >
+              <Mail className="w-6 h-6" />
+            </Link>
+          ) : (
+            // ✅ Normal Cart everywhere else
+            <Link href="/cart" className="relative">
+              <ShoppingCart className="w-6 h-6 text-gray-800 hover:text-blue-600 transition" />
+              {cart?.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+                  {cart.length}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Profile/Login */}
           {hydratedUser ? (
@@ -121,6 +131,14 @@ export default function Navbar() {
                       className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
                     >
                       My Orders
+                    </Link>
+                  )}
+                  {hydratedUser.emailVerified && (
+                    <Link
+                      href="/contact"
+                      className="block px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm"
+                    >
+                      Contact Us
                     </Link>
                   )}
                   {role === "admin" && (
