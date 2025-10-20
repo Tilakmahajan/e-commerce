@@ -5,6 +5,7 @@ import { db } from "@/app/firebaseConfig";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -88,7 +89,7 @@ export default function Home() {
         {/* If no results */}
         {filteredProducts.length === 0 && isSearching ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-600">
-            <img
+            <Image
               src="https://illustrations.popsy.co/gray/shopping-bag.svg"
               alt="No results"
               className="w-24 sm:w-36 h-24 sm:h-36 mb-4"
@@ -126,7 +127,7 @@ export default function Home() {
                     transition={{ duration: 0.3 }}
                   >
                     {/* Product Image */}
-                    <img
+                    <Image
                       src={
                         product.images && product.images.length > 0
                           ? product.images[0]
