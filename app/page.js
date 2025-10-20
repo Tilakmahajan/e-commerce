@@ -92,7 +92,9 @@ export default function Home() {
             <Image
               src="https://illustrations.popsy.co/gray/shopping-bag.svg"
               alt="No results"
-              className="w-24 sm:w-36 h-24 sm:h-36 mb-4"
+              width={150}
+              height={150}
+              className="mb-4"
             />
             <p className="text-base sm:text-lg font-medium text-center">
               No products found for “{query}”.
@@ -135,6 +137,8 @@ export default function Home() {
                       }
                       alt={product.name}
                       className="w-full h-56 object-contain bg-gray-50"
+                      width={400}
+                      height={400}
                     />
 
                     {/* Product Info */}
@@ -178,6 +182,22 @@ export default function Home() {
           </motion.div>
         )}
       </section>
+
+      {/* ✅ Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/8530619001"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 flex items-center justify-center z-50 "
+        aria-label="Chat on WhatsApp"
+      >
+        <Image
+          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+          alt="WhatsApp"
+          width={32}
+          height={32}
+        />
+      </a>
     </div>
   );
 }

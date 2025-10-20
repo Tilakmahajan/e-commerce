@@ -5,6 +5,7 @@ const nextConfig = {
       "m.media-amazon.com", // ✅ Amazon product images
       "firebasestorage.googleapis.com", // ✅ Firebase storage
       "images.unsplash.com", // ✅ Unsplash (optional)
+      "res.cloudinary.com", // ✅ Cloudinary images
     ],
   },
 };
