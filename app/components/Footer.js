@@ -7,7 +7,7 @@ export default function Footer() {
 
         {/* Copy */}
         <p className="mt-4 md:mt-0 text-sm text-gray-400">
-          © {new Date().getFullYear()} Max Wholesaler. All rights reserved.
+          © {new Date().getFullYear()} Max Wholesaler.All rights reserved.
         </p>
       </div>
     </footer>
