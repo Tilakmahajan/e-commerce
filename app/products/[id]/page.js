@@ -1,70 +1,180 @@
 "use client";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
-import products from "@/app/data/products";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/app/firebaseConfig";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/app/components/CartContext";
 
-export default function ProductDetails() {
+export default function ProductDetailsPage() {
   const { id } = useParams();
-  const product = products.find((p) => p.id.toString() === id);
-  const { addToCart } = useCart();
+  const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
+  const [toast, setToast] = useState(null);
+  const [currentImg, setCurrentImg] = useState(0); // current image index
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
-  if (!product) {
-    return <p className="text-center mt-10 text-gray-500">Product not found.</p>;
-  }
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProduct({ id: docSnap.id, ...docSnap.data() });
+        }
+      } catch (err) {
+        console.error("Failed to fetch product:", err);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500); // revert back after 1.5s
+    addToCart({ ...product, quantity });
+    setToast(`${quantity} × ${product.name} added to cart!`);
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  if (!product) return <p className="text-center py-20">Loading...</p>;
+
+  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+
+  const handlePrev = () => setCurrentImg((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const handleNext = () => setCurrentImg((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+
+  // Mobile swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) handleNext(); // swipe left
+    if (touchEndX.current - touchStartX.current > 50) handlePrev(); // swipe right
   };
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <div className="grid md:grid-cols-2 gap-10 items-center">
-        {/* Product Image */}
-        <img
-          src={product.image}
-          alt={product.name}
-          className="rounded-xl shadow-lg w-full h-96 object-cover"
-        />
+    <div className="min-h-screen bg-gray-100 py-12">
+      <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12">
+        {/* Product Image Carousel */}
+        <motion.div
+          className="bg-white rounded-2xl shadow-lg overflow-hidden relative"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentImg}
+              src={images[currentImg]}
+              alt={product.name}
+              className="w-full h-[500px] object-contain rounded-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            />
+          </AnimatePresence>
+
+          {/* Prev / Next Buttons */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={handlePrev}
+                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-40 text-white px-3 py-2 rounded-full hover:bg-opacity-60 transition hidden md:block"
+              >
+                ◀
+              </button>
+              <button
+                onClick={handleNext}
+                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-40 text-white px-3 py-2 rounded-full hover:bg-opacity-60 transition hidden md:block"
+              >
+                ▶
+              </button>
+            </>
+          )}
+
+          {/* Mobile Indicators */}
+          {images.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`w-3 h-3 rounded-full transition ${
+                    idx === currentImg ? "bg-blue-600" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </motion.div>
 
         {/* Product Info */}
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
-          <p className="text-lg text-gray-600 mb-6">{product.description}</p>
-          <p className="text-2xl font-semibold text-blue-600 mb-6">₹{product.price}</p>
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col justify-between bg-white rounded-2xl shadow-lg p-8"
+        >
+          <div>
+            <h1 className="text-3xl font-bold mb-4 text-gray-900">{product.name}</h1>
+            <p className="text-xl font-semibold text-blue-600 mb-4">₹{product.price}</p>
+            <p className="text-gray-700 mb-6">{product.description}</p>
 
-          {/* Quantity Selector */}
-          <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
-            >
-              -
-            </button>
-            <span className="px-4 py-1 border rounded-lg">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300"
-            >
-              +
-            </button>
+            {/* Quantity Selector */}
+            <div className="flex items-center gap-4 mb-6">
+              <span className="font-semibold text-gray-800">Quantity:</span>
+              <div className="flex items-center border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 font-bold hover:bg-gray-300 transition"
+                >
+                  -
+                </button>
+                <span className="px-6 py-2 text-gray-900 font-medium">{quantity}</span>
+                <button
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 font-bold hover:bg-gray-300 transition"
+                >
+                  +
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Add to Cart Button */}
-          <button
+          <motion.button
             onClick={handleAddToCart}
-            className={`px-6 py-3 font-semibold rounded-lg shadow-md transition ${
-              added ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            whileTap={{ scale: 0.95 }}
+            className="w-full py-4 bg-green-600 text-white font-bold rounded-full shadow-lg hover:bg-green-700 transition text-lg"
           >
-            {added ? "Added ✓" : "Add to Cart"}
-          </button>
-        </div>
+            Add {quantity} to Cart
+          </motion.button>
+        </motion.div>
       </div>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            className="fixed bottom-20 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.3 }}
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
