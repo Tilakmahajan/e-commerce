@@ -58,8 +58,8 @@ export default function Navbar() {
           href="/"
           className="text-2xl md:text-3xl font-extrabold text-gray-900 hover:text-blue-600 transition whitespace-nowrap"
         >
-          <span className="md:inline hidden flex-row"><img className="h-14 border rounded-4xl" src="/logo.jpg" alt="" /></span>
-          <span className="md:hidden inline"><img className=" h-10 border rounded-4xl" src="/logo.jpg" alt="" /></span>
+          <span className="md:inline hidden flex-row text-white"><Image width={50} height={10} className="h-14 border rounded-4xl" src="/logo.jpg" alt="logo" /></span>
+          <span className="md:hidden inline"><Image width={40} height={10} className=" h-10 border rounded-4xl" src="/logo.jpg" alt="logo" /></span>
         </Link>
 
         {/* Search bar */}
