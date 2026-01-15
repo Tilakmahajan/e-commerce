@@ -100,9 +100,9 @@ export default function ContactUs() {
         {/* Contact Form - right */}
         <motion.form
           onSubmit={handleSendMessage}
-          className="bg-gray-50 p-8 rounded-2xl text-black shadow-lg flex flex-col gap-6 hover:shadow-2xl transition duration-300"
+          className="bg-gray-50 p-8 rounded-2xl overflow-hidden h-[400px] text-black shadow-lg flex flex-col gap-6 hover:shadow-2xl transition duration-300"
         >
-          <h2 className="text-3xl font-semibold text-gray-800 text-center mb-4">
+          <h2 className="text-3xl font-semibold text-gray-800 text-center mb-1">
             Send a Message
           </h2>
           <input
