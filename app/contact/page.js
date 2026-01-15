@@ -100,9 +100,9 @@ export default function ContactUs() {
         {/* Contact Form - right */}
         <motion.form
           onSubmit={handleSendMessage}
-          className="bg-gray-50 p-8 rounded-2xl text-black shadow-lg flex flex-col gap-6 hover:shadow-2xl transition duration-300"
+          className="bg-gray-50 p-8 rounded-2xl overflow-hidden h-[400px] text-black shadow-lg flex flex-col gap-6 hover:shadow-2xl transition duration-300"
         >
-          <h2 className="text-3xl font-semibold text-gray-800 text-center mb-4">
+          <h2 className="text-3xl font-semibold text-gray-800 text-center mb-0.1">
             Send a Message
           </h2>
           <input
@@ -110,7 +110,7 @@ export default function ContactUs() {
             placeholder="Your Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300"
+            className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300"
             required
           />
           <input
@@ -118,7 +118,7 @@ export default function ContactUs() {
             placeholder="Your Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300"
+            className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300"
             required
           />
           <textarea
@@ -126,7 +126,7 @@ export default function ContactUs() {
             rows={5}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300 resize-none"
+            className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:outline-none transition duration-300 resize-none"
             required
           />
           <button
